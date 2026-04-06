@@ -15,6 +15,10 @@ RUN_ON_STARTUP = True
 ACADEMIC_MODE = True
 SUBJECT_DETECTION = True
 
+# AI Settings
+AI_ENABLED = True
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+
 # Internal DB Paths
 BASE_DIR = Path(__file__).parent.parent
 DATA_DIR = BASE_DIR / "data"

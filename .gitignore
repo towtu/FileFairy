@@ -1,0 +1,19 @@
+# Environment variables
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Database files (generated at runtime)
+data/*.db
+
+# Logs
+logs/
+
+# IDE
+.vscode/
+.idea/

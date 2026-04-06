@@ -1,13 +1,17 @@
 # FileFairy
 
-A comprehensive file organization system that automatically monitors your Downloads folder and intelligently categorizes files into organized directory structures. FileFairy uses real-time file system monitoring to detect new files, analyzes their content and metadata, and organizes them into appropriate categories while detecting and managing duplicates.
+An AI-powered file organization system that automatically monitors your Downloads folder and intelligently categorizes files into organized directory structures. FileFairy uses Google Gemini AI for context-aware file classification, combined with real-time file system monitoring to detect new files, analyze their content and metadata, and organize them into appropriate categories while detecting and managing duplicates.
 
 ## Overview
 
-FileFairy is a Python-based automation tool designed to eliminate manual file organization. It runs continuously in the background, watching your Downloads folder and automatically sorting incoming files into well-structured categories based on file type, content analysis, and naming conventions. The system includes academic-specific organization modes, duplicate detection using MD5 hashing, filename normalization, and real-time statistics tracking.
+FileFairy is a Python-based AI automation tool designed to eliminate manual file organization. It runs continuously in the background, watching your Downloads folder and automatically sorting incoming files using Google Gemini AI to understand file context beyond simple extension matching. When AI is unavailable, the system gracefully falls back to rule-based categorization using file type, naming conventions, and keyword analysis. The system includes academic-specific organization modes, duplicate detection using MD5 hashing, filename normalization, AI result caching, and real-time statistics tracking.
 
 ## Key Features
 
+- **AI-Powered Categorization**: Google Gemini AI analyzes filenames and context to intelligently determine the best category, going beyond simple extension matching
+- **Intelligent Fallback**: When AI is unavailable or rate-limited, the system automatically falls back to rule-based categorization with zero downtime
+- **AI Result Caching**: Previously categorized files are cached in a local SQLite database to avoid redundant API calls and reduce latency
+- **Rate Limit Handling**: Automatic cooldown management when API quotas are reached, with seamless fallback to rule-based classification
 - **Real-time Monitoring**: Continuous file system monitoring using watchdog library for immediate file organization upon download completion
 - **Intelligent Categorization**: Automatic classification of files into categories including Academics, Code, Documents, Images, Videos, Audio, and Data
 - **Duplicate Detection**: MD5-based duplicate file identification and organization into a dedicated duplicates folder
@@ -24,6 +28,7 @@ FileFairy is a Python-based automation tool designed to eliminate manual file or
 - Windows 7 or later
 - Python 3.8 or higher
 - 50 MB free disk space
+- Google Gemini API key (free tier available at https://aistudio.google.com/apikey)
 - Dependencies listed in requirements.txt
 
 ## Installation
@@ -31,7 +36,7 @@ FileFairy is a Python-based automation tool designed to eliminate manual file or
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/FileFairy.git
+git clone https://github.com/towtu/FileFairy.git
 cd FileFairy/smart-file-organizer
 ```
 
@@ -43,9 +48,28 @@ pip install -r requirements.txt
 
 This installs required packages including:
 - watchdog: Real-time file system event monitoring
-- SQLite3: Local database for duplicate detection and statistics tracking
+- google-genai: Google Gemini AI SDK for intelligent file categorization
+- python-dotenv: Environment variable management for secure API key storage
+- SQLite3: Local database for duplicate detection, AI caching, and statistics tracking
 
-### Step 3: Configuration
+### Step 3: Configure the Gemini API Key
+
+1. Visit https://aistudio.google.com/apikey and create a free API key
+2. Create a `.env` file in the `smart-file-organizer/` directory:
+
+```bash
+cp .env.example .env
+```
+
+3. Open the `.env` file and replace the placeholder with your actual API key:
+
+```
+GEMINI_API_KEY=your_actual_api_key_here
+```
+
+The free tier provides 15 requests per minute and 1,500 requests per day, which is sufficient for typical file organization workloads.
+
+### Step 4: Configuration (Optional)
 
 No additional configuration is required. The system uses default settings targeting your Downloads folder. For custom configuration, edit `config/settings.py`:
 
@@ -223,13 +247,28 @@ This is required for Python 3.13 compatibility.
 
 **Solution**: The system uses MD5 hashing for duplicate detection. Ensure the `data/` directory has write permissions. Verify database connectivity by checking `logs/organizer.log`.
 
+## How the AI Categorization Works
+
+FileFairy uses a multi-tier categorization strategy:
+
+1. **AI Classification (Primary)**: When enabled and available, each new file is sent to Google Gemini AI with its filename and extension. The AI analyzes contextual clues, abbreviations, and patterns to determine the optimal category with a confidence score.
+
+2. **Cache Lookup**: Before making an API call, the system checks a local SQLite cache. If the same filename has been categorized before, the cached result is returned instantly with no API usage.
+
+3. **Confidence Filtering**: Only "high" and "medium" confidence AI results are accepted. Low-confidence results are discarded and the system falls back to rule-based logic.
+
+4. **Rule-Based Fallback**: If the AI is unavailable (no API key, rate limited, network error), the system uses keyword matching and extension-based rules to categorize files with zero downtime.
+
+5. **Rate Limit Management**: When API quota is exceeded, a 60-second cooldown is activated. During cooldown, all files are categorized using rules. The system automatically resumes AI classification once the cooldown expires.
+
 ## Project Architecture
 
 FileFairy is organized into modular components:
 
 - `main.py`: Application entry point and event loop orchestration
+- `ai_categorizer.py`: Google Gemini AI integration with caching, rate limiting, and fallback logic
 - `watcher.py`: File system event handler and monitoring logic
-- `categorizer.py`: File classification and routing engine
+- `categorizer.py`: File classification engine (AI-first with rule-based fallback)
 - `duplicate_detector.py`: MD5-based duplicate identification with database persistence
 - `filename_cleaner.py`: Filename normalization and sanitization
 - `stats_tracker.py`: Statistics accumulation and persistence
@@ -244,6 +283,7 @@ FileFairy is organized into modular components:
 FileFairy uses SQLite for local data persistence:
 
 - `data/duplicates.db`: MD5 hashes and file records for duplicate detection
+- `data/ai_cache.db`: Cached AI categorization results to minimize API calls
 - `data/stats.db`: File organization statistics and activity logs
 - `data/undo.db`: Operation history for undo functionality
 
@@ -267,6 +307,9 @@ WATCH_FOLDER = Path.home() / "Downloads"
 # Output organization folder
 OUTPUT_FOLDER = WATCH_FOLDER / "Organized"
 
+# AI categorization (requires GEMINI_API_KEY in .env)
+AI_ENABLED = True
+
 # Enable academic-specific organization
 ACADEMIC_MODE = True
 
@@ -276,6 +319,8 @@ MIN_FILE_SIZE = 10000
 # File monitoring polling interval (seconds)
 POLLING_INTERVAL = 5
 ```
+
+To disable AI categorization and use only rule-based sorting, set `AI_ENABLED = False` in `config/settings.py`.
 
 ## Performance Considerations
 
