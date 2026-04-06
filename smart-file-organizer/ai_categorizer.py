@@ -69,7 +69,7 @@ def _get_model():
         client = genai.Client(api_key=GEMINI_API_KEY)
         _model = client
         _available = True
-        print("[AI] Gemini AI categorizer initialized successfully.")
+        print("[AI] Gemini AI categorizer initialized successfully (gemini-2.5-flash).")
         return _model
     except ImportError:
         _available = False
@@ -131,10 +131,16 @@ def ai_categorize(filename: str, extension: str) -> str:
 
     try:
         prompt = f"{SYSTEM_PROMPT}\n\nCategorize this file:\nFilename: {filename}\nExtension: {extension}"
+
+        from google.genai.types import GenerateContentConfig, ThinkingConfig
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash",
             contents=prompt,
-            config={"temperature": 0.1, "max_output_tokens": 150},
+            config=GenerateContentConfig(
+                temperature=0.1,
+                max_output_tokens=256,
+                thinking_config=ThinkingConfig(thinking_budget=0),
+            ),
         )
 
         text = response.text.strip()

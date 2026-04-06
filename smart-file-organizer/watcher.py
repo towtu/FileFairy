@@ -1,5 +1,6 @@
 import time
 import shutil
+import threading
 from pathlib import Path
 from watchdog.events import FileSystemEventHandler
 from config.ignored_files import is_ignored
@@ -14,6 +15,11 @@ from notifier import send_notification
 from datetime import datetime
 
 class DownloadHandler(FileSystemEventHandler):
+    def __init__(self):
+        super().__init__()
+        self._processing = set()
+        self._lock = threading.Lock()
+
     def on_created(self, event):
         if not event.is_directory:
             self.process_file(Path(event.src_path))
@@ -23,6 +29,18 @@ class DownloadHandler(FileSystemEventHandler):
             self.process_file(Path(event.dest_path))
 
     def process_file(self, filepath: Path):
+        with self._lock:
+            if str(filepath) in self._processing:
+                return
+            self._processing.add(str(filepath))
+
+        try:
+            self._do_process(filepath)
+        finally:
+            with self._lock:
+                self._processing.discard(str(filepath))
+
+    def _do_process(self, filepath: Path):
         if is_ignored(filepath.name):
             return
             
@@ -56,6 +74,9 @@ class DownloadHandler(FileSystemEventHandler):
 
         dest_dir = categorize_file(curr_filepath)
         dest_dir.mkdir(parents=True, exist_ok=True)
+        
+        if not curr_filepath.exists():
+            return
         
         final_path = resolve_conflict(dest_dir, curr_filepath.name)
         
