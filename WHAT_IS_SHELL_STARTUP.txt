@@ -1,0 +1,184 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                      WHAT IS shell:startup?                                  ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+
+SIMPLE ANSWER
+─────────────────────────────────────────────────────────────────────────────────
+
+"shell:startup" is a Windows command that takes you to a special folder.
+
+When you put files in that folder, Windows automatically runs them 
+every time your computer boots up.
+
+
+WHAT FOLDER?
+─────────────────────────────────────────────────────────────────────────────────
+
+Real path:
+  C:\Users\atila\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\
+
+(Very long path, which is why Windows created "shell:startup" shortcut!)
+
+
+HOW IT WORKS
+─────────────────────────────────────────────────────────────────────────────────
+
+Step 1: Put a file (like run_on_startup.bat) in startup folder
+Step 2: Restart your computer
+Step 3: Windows finds that file automatically
+Step 4: Windows runs it automatically
+Step 5: Your program starts!
+
+No manual action needed after restart!
+
+
+BEFORE vs AFTER
+─────────────────────────────────────────────────────────────────────────────────
+
+WITHOUT using startup folder (what you're doing now):
+
+  Restart computer
+       ↓
+  Windows loads
+       ↓
+  You manually type: python main.py
+       ↓
+  Organizer starts
+
+
+WITH using startup folder (what we're setting up):
+
+  Restart computer
+       ↓
+  Windows loads
+       ↓
+  Windows finds run_on_startup.bat in startup folder
+       ↓
+  Windows automatically runs it
+       ↓
+  Organizer starts automatically (you do NOTHING!)
+
+
+HOW TO USE shell:startup
+─────────────────────────────────────────────────────────────────────────────────
+
+1. Press: Windows key + R
+   (Opens "Run" dialog - a small input box)
+
+2. Type: shell:startup
+
+3. Press: Enter
+
+4. A folder window opens showing your startup folder
+
+That's it! Now you can see the folder and add files to it.
+
+
+WHAT TO DO NEXT
+─────────────────────────────────────────────────────────────────────────────────
+
+1. Open shell:startup (Windows key + R → shell:startup → Enter)
+
+2. Copy run_on_startup.bat from:
+   C:\Users\atila\Desktop\Automations\Organizer\smart-file-organizer\
+   
+   Into the startup folder (from step 1)
+
+3. Restart computer
+
+4. Done! Organizer runs automatically forever
+
+
+WHAT'S IN run_on_startup.bat?
+─────────────────────────────────────────────────────────────────────────────────
+
+It's a simple batch file that:
+
+  @echo off
+  cd /d "C:\Users\atila\Desktop\Automations\Organizer\smart-file-organizer"
+  start /B pythonw main.py
+  exit
+
+Translation:
+  • Go to organizer folder
+  • Run: python main.py
+  • Use pythonw (silent, no console window)
+  • Exit
+
+When Windows runs this at startup, your organizer starts silently!
+
+
+IS IT SAFE?
+─────────────────────────────────────────────────────────────────────────────────
+
+✓ YES, completely safe
+
+✓ It's just a regular Windows folder
+✓ You can see what's inside
+✓ You can delete files anytime
+✓ Nothing gets hidden or damaged
+✓ You can disable it anytime (just delete the file)
+
+
+OTHER shell: COMMANDS (BONUS INFO)
+─────────────────────────────────────────────────────────────────────────────────
+
+Windows has many shell: shortcuts:
+
+  shell:startup       → Startup folder (what we use)
+  shell:downloads     → Downloads folder
+  shell:desktop       → Desktop
+  shell:documents     → Documents
+  shell:appdata       → AppData folder
+  shell:localappdata  → Local AppData
+  shell:temp          → Temp folder
+
+
+WHAT HAPPENS IF...
+─────────────────────────────────────────────────────────────────────────────────
+
+"What if I want to stop it?"
+  → Open shell:startup
+  → Delete run_on_startup.bat
+  → Restart computer
+  → Organizer won't start automatically
+
+"What if I want to disable it temporarily?"
+  → Just don't restart
+  → It only runs at startup
+
+"What if I want to see if it's working?"
+  → After restart, run: python dashboard.py
+  → Shows stats of organized files
+
+"Can I put other programs in startup?"
+  → YES! Any .bat, .exe, or shortcut in that folder runs at startup
+
+
+SUMMARY
+─────────────────────────────────────────────────────────────────────────────────
+
+shell:startup is a Windows feature that:
+
+  ✓ Takes you to the startup folder
+  ✓ Runs files automatically on boot
+  ✓ Perfect for programs you want running 24/7
+  ✓ That's exactly what you need!
+
+
+NEXT STEP
+─────────────────────────────────────────────────────────────────────────────────
+
+You now understand what shell:startup is.
+
+Ready to use it?
+
+  1. Windows key + R
+  2. Type: shell:startup
+  3. Press Enter
+  4. Copy run_on_startup.bat there
+  5. Restart
+  6. Done!
+
+═════════════════════════════════════════════════════════════════════════════════
